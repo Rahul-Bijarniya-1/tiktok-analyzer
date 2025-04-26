@@ -1,0 +1,68 @@
+# ─── Python bytecode ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ─── Distribution / packaging ─────────────────────────────────
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# ─── Virtual envs ────────────────────────────────────────────
+env/
+venv/
+.venv/
+ENV/
+
+# ─── IDE / editor ────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+
+# ─── Terraform local cache ─────────────────────────────────
+.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfvars
+terraform/terraform_outputs.txt
+
+# ─── Testing / coverage ──────────────────────────────────────
+.pytest_cache/
+.nox/
+.coverage
+htmlcov/
+*.cover
+coverage.xml
+
+# ─── Caches & logs ───────────────────────────────────────────
+.cache/
+logs/
+*.log
+
+# ─── Jupyter / notebooks ─────────────────────────────────────
+.ipynb_checkpoints
+
+# ─── Type checkers ───────────────────────────────────────────
+.mypy_cache/
+.pyre/
+
+# ─── Docker ──────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Environment files ───────────────────────────────────────
+.env
+config/.env
+my-aws-key.pem
+local_requirements.txt
+container_requirements.txt
+
+# ─── OS files ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Model files ─────────────────────────────────────────────
+models/
+MiVOLO/
+
+
