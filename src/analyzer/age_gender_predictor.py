@@ -90,24 +90,13 @@ class OptimizedMiVOLOAnalyzer:
             if not download_success:
                 raise RuntimeError("Failed to download MiVOLO model")
         
-        # Install MiVOLO if needed
+        # Verify MiVOLO is already installed (should be from Dockerfile)
         try:
             import mivolo
+            logger.info("MiVOLO package already installed")
         except ImportError:
-            logger.info("Installing MiVOLO dependencies...")
-            os.system("pip install -q huggingface_hub ultralytics==8.1.0 timm==0.8.13.dev0 lapx>=0.5.2 -q")
-            
-            # Clone and install the MiVOLO repository
-            if not os.path.exists("MiVOLO"):
-                logger.info("Cloning MiVOLO repository...")
-                os.system("git clone https://github.com/WildChlamydia/MiVOLO.git")
-                os.system("cd MiVOLO && pip install -e . -q")
-            else:
-                os.system("cd MiVOLO && pip install -e . -q")
-            
-            # Add the MiVOLO directory to Python path
-            import sys
-            sys.path.append(os.path.abspath("MiVOLO"))
+            logger.error("MiVOLO package not found. It should have been installed during Docker build.")
+            raise ImportError("MiVOLO package not installed. Please rebuild the Docker image.")
     
     def _initialize_models(self) -> None:
         """Initialize models with memory optimization"""

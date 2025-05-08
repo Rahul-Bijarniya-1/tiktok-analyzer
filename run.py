@@ -16,7 +16,7 @@ from src.scraper.tiktok_scraper import TikTokScraper
 from src.analyzer.age_gender_predictor import OptimizedMiVOLOAnalyzer
 from src.utils.helpers import upload_to_s3, download_from_s3, read_csv, write_csv
 from config.settings import (
-    INPUT_DIR, OUTPUT_DIR, S3_BUCKET, SQS_QUEUE_URL, BATCH_SIZE
+    INPUT_DIR, OUTPUT_DIR, S3_BUCKET, SQS_QUEUE_URL, BATCH_SIZE, AWS_REGION
 )
 
 # Configure logging
@@ -39,10 +39,10 @@ class TikTokAnalyzerApp:
         
         # Initialize cloud clients if using cloud
         if self.use_cloud:
-            self.s3_client = boto3.client('s3')
+            self.s3_client = boto3.client('s3', region_name=AWS_REGION)
             if SQS_QUEUE_URL:
-                self.sqs_client = boto3.client('sqs')
-            self.cloudwatch_client = boto3.client('cloudwatch')
+                self.sqs_client = boto3.client('sqs', region_name=AWS_REGION)
+            self.cloudwatch_client = boto3.client('cloudwatch', region_name=AWS_REGION)
         
         # Initialize components
         logger.info("Initializing scraper and analyzer components...")

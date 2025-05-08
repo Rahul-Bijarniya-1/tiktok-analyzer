@@ -19,7 +19,7 @@ variable "bucket_name" {
 variable "ami_id" {
   description = "AMI ID for EC2 instance (Deep Learning AMI with GPU support)"
   type        = string
-  default     = "ami-0f1dcc636b69a6438"  # Ubuntu 20.04 Deep Learning AMI
+  default     = "ami-04a91d999d92a2640"  # Ubuntu 20.04 Deep Learning AMI
 }
 
 variable "key_name" {

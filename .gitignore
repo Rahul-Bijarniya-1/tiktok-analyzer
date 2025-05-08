@@ -65,4 +65,18 @@ Thumbs.db
 models/
 MiVOLO/
 
+# ─── Data files ───────────────────────────────────────────────
+data/input/
+data/output/
+
+# ─── Test files ───────────────────────────────────────────────
+test_script.py
+test_results/
+test-event.json
+response.json
+lambda_function.py
+keshav_profiles_results.csv
+combined_results.csv
+Commands.txt
+
 

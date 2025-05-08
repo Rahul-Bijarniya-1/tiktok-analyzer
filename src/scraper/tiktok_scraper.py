@@ -64,7 +64,7 @@ class TikTokScraper:
             "profiles": [username],
             "profileScrapeSections": ["videos"],
             "profileSorting": "latest",
-            "resultsPerPage": limit * 2,  # Request more to ensure we get enough
+            "resultsPerPage": limit,  # Request more to ensure we get enough
             "excludePinnedPosts": False,
             "shouldDownloadVideos": False,
             "shouldDownloadCovers": True,
