@@ -117,7 +117,7 @@ The system is deployed on AWS and consists of:
    APIFY_API_KEY=your_apify_api_key_here
 
    # AWS Configuration
-   AWS_REGION=us-east-1
+   AWS_REGION=ap-south-1
    AWS_ACCESS_KEY_ID=your_access_key_id
    AWS_SECRET_ACCESS_KEY=your_secret_access_key
    S3_BUCKET=tiktok-analyzer-data
@@ -144,7 +144,7 @@ The system is deployed on AWS and consists of:
 2. Create the `terraform.tfvars` file:
    ```bash
    cat > terraform.tfvars <<EOF
-   aws_region = "us-east-1"
+   aws_region = "ap-south-1"
    environment = "dev"
    bucket_name = "tiktok-analyzer-data"
    key_name = "your-key-name"

@@ -1,0 +1,282 @@
+## Clone the Repository
+
+bash# Create a directory for your projects
+mkdir -p ~/projects
+cd ~/projects
+
+# Clone the repository
+git clone https://github.com/yourusername/tiktok-analyzer.git
+cd tiktok-analyzer
+
+
+## Set Up Virtual Environment
+
+bash# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+
+# On macOS/Linux:
+source venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+## Install Dependencies
+bash# Install all required packages
+pip install -r requirements.txt
+
+# Install the package in development mode
+pip install -e .
+
+## Configure Environment Variables
+bash# Copy the template environment file
+cp config/.env.template config/.env
+
+# Edit the .env file with your favorite text editor
+# On Windows:
+notepad config/.env
+
+# On macOS/Linux:
+nano config/.env
+
+Fill in the required information:
+# API Keys
+APIFY_API_KEY=your_apify_api_key_here  # Get this from Apify.com
+
+# AWS Configuration (Only needed for cloud deployment)
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
+S3_BUCKET=tiktok-analyzer-data
+SQS_QUEUE_URL=  # Leave empty for now
+
+# GPU Settings
+USE_GPU=True
+BATCH_SIZE=16
+
+# Scraper Settings
+THUMBNAILS_PER_USER=10
+MAX_RETRIES=3
+RETRY_DELAY=5
+
+Create Project Directories
+bash# Create necessary directories
+mkdir -p data/input data/output models
+
+Get an Apify API Key
+
+Go to Apify.com and create an account
+Navigate to Account Settings > Integrations > API
+Copy your API key
+Add it to your config/.env file
+
+
+Testing Local Functionality
+3.1 Create a Test Input File
+bash# Create a simple CSV with a few usernames for testing
+echo "username" > data/input/test_usernames.csv
+echo "charlidamelio" >> data/input/test_usernames.csv
+echo "addisonre" >> data/input/test_usernames.csv
+
+# Take a look at the file
+cat data/input/test_usernames.csv
+3.2 Run Local Tests
+bash# Run the basic environment test
+python tests/test_environment.py
+
+# Run unit tests
+python -m pytest tests/
+3.3 Run the Analyzer Locally
+bash# Run the analyzer with the test file
+python run.py --mode=file --input=data/input/test_usernames.csv --output=data/output/test_results.csv
+
+# Check the results
+cat data/output/test_results.csv
+
+4. Docker Containerization
+4.1 Install Docker
+On Windows/macOS:
+
+Download Docker Desktop from docker.com
+Install and start Docker Desktop
+Verify installation: docker --version
+
+On Linux:
+bash# Install Docker
+sudo apt update
+sudo apt install docker.io
+
+# Start and enable Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add your user to the docker group (to run Docker without sudo)
+sudo usermod -aG docker $USER
+
+# Log out and log back in, then verify
+docker --version
+
+Build and Run Docker Container
+bash# Build the Docker image
+docker build -t tiktok-analyzer .
+
+# Run the container with the test file
+docker run --rm -v $(pwd)/data:/app/data -e APIFY_API_KEY=your_apify_api_key tiktok-analyzer python run.py --mode=file --input=data/input/test_usernames.csv --output=data/output/docker_test_results.csv
+
+# With GPU support (if available)
+docker run --rm --gpus all -v $(pwd)/data:/app/data -e APIFY_API_KEY=your_apify_api_key tiktok-analyzer python run.py --mode=file --input=data/input/test_usernames.csv --output=data/output/docker_test_results.csv
+
+AWS Infrastructure Setup
+5.1 Install AWS CLI
+On Windows:
+
+Download the installer from AWS CLI website
+Run the installer with default options
+Verify installation: aws --version
+
+Configure AWS CLI
+# Configure AWS CLI with your credentials
+aws configure
+
+# Enter your Access Key ID and Secret Access Key when prompted
+# Use your preferred region (e.g., us-east-1)
+# Use 'json' as the default output format
+
+5.3 Install Terraform
+On Windows:
+
+Download the ZIP file from Terraform website
+Extract to a folder and add it to your PATH
+Verify installation: terraform --version
+
+On macOS:
+bash# Using Homebrew
+brew install terraform
+
+# Verify installation
+terraform --version
+On Linux:
+bash# Download and install Terraform
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt update
+sudo apt install terraform
+
+# Verify installation
+terraform --version
+
+5.4 Create SSH Key for EC2
+bash# Create an SSH key pair
+aws ec2 create-key-pair --key-name tiktok-analyzer-key --query "KeyMaterial" --output text > tiktok-analyzer-key.pem
+
+# Set appropriate permissions
+chmod 400 tiktok-analyzer-key.pem
+
+# Move the key to a safe location
+mkdir -p ~/.ssh
+mv tiktok-analyzer-key.pem ~/.ssh/
+
+5.5 Configure Terraform Variables
+bash# Navigate to the Terraform directory
+cd terraform
+
+# Create terraform.tfvars file
+cat > terraform.tfvars <<EOF
+aws_region = "us-east-1"
+environment = "dev"
+bucket_name = "tiktok-analyzer-data"
+key_name = "tiktok-analyzer-key"
+apify_api_key = "your-apify-api-key"
+ssh_allowed_ips = ["your.ip.address/32"]
+EOF
+
+# Replace "your.ip.address" with your actual IP address
+# You can find your IP by visiting whatismyip.com
+
+5.6 Deploy AWS Infrastructure
+bash# Initialize Terraform
+terraform init
+
+# See what will be created
+terraform plan
+
+# Deploy the infrastructure
+terraform apply
+
+# Confirm by typing 'yes' when prompted
+
+# Save the outputs
+terraform output > terraform_outputs.txt
+
+6. Cloud Deployment
+6.1 Build and Push Docker Image to ECR
+bash# Get AWS account ID
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+AWS_REGION=$(aws configure get region)
+
+# Create ECR repository if it doesn't exist
+aws ecr create-repository --repository-name tiktok-analyzer
+
+# Log in to ECR
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+# Build and tag the Docker image
+docker build -t tiktok-analyzer .
+docker tag tiktok-analyzer:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tiktok-analyzer:latest
+
+# Push the image to ECR
+docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/tiktok-analyzer:latest
+
+6.2 Upload Test Data to S3
+bash# Get the S3 bucket name from Terraform outputs
+S3_BUCKET=$(grep -A1 "s3_bucket_name" terraform_outputs.txt | tail -n1 | awk -F'"' '{print $2}')
+
+# Upload the test CSV file
+aws s3 cp data/input/test_usernames.csv s3://$S3_BUCKET/input/test_usernames.csv
+6.3 Connect to EC2 Instance
+bash# Get the EC2 instance IP from Terraform outputs
+EC2_IP=$(grep -A1 "ec2_instance_public_ip" terraform_outputs.txt | tail -n1 | awk -F'"' '{print $2}')
+
+# Connect to the instance
+ssh -i ~/.ssh/tiktok-analyzer-key.pem ubuntu@$EC2_IP
+
+# Once connected, check if Docker is running
+docker ps
+
+# Check if NVIDIA and GPU are properly configured
+nvidia-smi
+
+6.4 Run the Container on EC2
+bash# On the EC2 instance, run the container (these commands are executed on the EC2 instance)
+# Get required environment variables
+export AWS_REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region)
+export S3_BUCKET=tiktok-analyzer-data  # Use the actual bucket name
+export APIFY_API_KEY=your_apify_api_key
+
+# Pull and run the container
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $(aws sts get-caller-identity --query Account --output text).dkr.ecr.$AWS_REGION.amazonaws.com
+
+docker pull $(aws sts get-caller-identity --query Account --output text).dkr.ecr.$AWS_REGION.amazonaws.com/tiktok-analyzer:latest
+
+docker run -d --name tiktok-analyzer \
+  --restart unless-stopped \
+  --gpus all \
+  -e AWS_REGION=$AWS_REGION \
+  -e S3_BUCKET=$S3_BUCKET \
+  -e APIFY_API_KEY=$APIFY_API_KEY \
+  -e USE_GPU=True \
+  $(aws sts get-caller-identity --query Account --output text).dkr.ecr.$AWS_REGION.amazonaws.com/tiktok-analyzer:latest \
+  python run.py --mode=file --cloud --input=data/input/test_usernames.csv --output=data/output/cloud_test_results.csv
+
+6.5 Verify Results in S3
+# Back on your local machine, check for results in S3
+aws s3 ls s3://$S3_BUCKET/output/
+
+# Download results
+aws s3 cp s3://$S3_BUCKET/output/cloud_test_results.csv data/output/cloud_results.csv
+
+# View results
+cat data/output/cloud_results.csv
